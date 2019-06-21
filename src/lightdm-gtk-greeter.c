@@ -23,6 +23,8 @@
 #endif
 
 #include <glib-unix.h>
+#include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 
 #include <locale.h>
 #include <gdk/gdkx.h>
@@ -2724,6 +2726,36 @@ debug_log_handler (const gchar *log_domain, GLogLevelFlags log_level, const gcha
     g_free (new_domain);
 }
 
+static void set_numlock(Display *display, gboolean on)
+{
+    XkbDescPtr xkb;
+    unsigned int mask;
+    int i;
+    xkb = XkbGetKeyboard(display, XkbAllComponentsMask, XkbUseCoreKbd );
+    if(!xkb) return;
+    if(!xkb->names)
+    {
+        XkbFreeKeyboard(xkb,0,True);
+        return;
+    }
+    for(i = 0; i < XkbNumVirtualMods; i++)
+    {
+        char *s=XGetAtomName( xkb->dpy, xkb->names->vmods[i]);
+        if(!s)
+            continue;
+        if(strcmp (s,"NumLock"))
+            continue;
+        XkbVirtualModsToReal (xkb, 1 << i, &mask );
+        break;
+    }
+    XkbFreeKeyboard (xkb, 0, True);
+    if (on) {
+        XkbLockModifiers (display, XkbUseCoreKbd, mask, mask);
+    } else {
+        XkbLockModifiers (display, XkbUseCoreKbd, mask, 0);
+    }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -2742,6 +2774,7 @@ main (int argc, char **argv)
     gchar          **a11y_states;
 
     gchar           *value;
+    gboolean         numlock;
 
     GtkCssProvider  *css_provider;
     GdkRGBA          lightdm_gtk_greeter_override_defaults;
@@ -2858,6 +2891,10 @@ main (int argc, char **argv)
         XSetScreenSaver (display, config_get_int (NULL, CONFIG_KEY_SCREENSAVER_TIMEOUT, 60), 0,
                          ScreenSaverActive, DefaultExposures);
     }
+
+    /* Set NumLock status */
+    numlock = config_get_bool (NULL, CONFIG_KEY_NUMLOCK, FALSE);
+    set_numlock(gdk_x11_display_get_xdisplay (gdk_display_get_default ()), numlock);
 
     /* Set GTK+ settings */
     value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
