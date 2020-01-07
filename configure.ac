@@ -173,11 +173,12 @@ dnl ###########################################################################
 dnl Internationalization
 dnl ###########################################################################
 
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.19.8])
+AM_GNU_GETTEXT_REQUIRE_VERSION([0.19.8])
 GETTEXT_PACKAGE="lightdm-gtk-greeter"
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
-AM_GNU_GETTEXT_VERSION([0.19.7])
-AM_GNU_GETTEXT([external])
 
 dnl ###########################################################################
 dnl Files to generate
