@@ -1055,7 +1055,13 @@ set_session (const gchar *session)
                 {
                     /* Set menuitem-image to session-badge */
                     GtkIconTheme *icon_theme = gtk_icon_theme_get_default ();
-                    gchar* session_name = g_ascii_strdown (session, -1);
+                    gchar* session_name;
+                    if (strchr (session, '@') != NULL) {
+                        g_auto(GStrv) name_type = g_strsplit(session, "@", 2);
+                        session_name = g_ascii_strdown (name_type[0], -1);
+                    } else {
+                        session_name = g_ascii_strdown (session, -1);
+                    }
                     gchar* icon_name = g_strdup_printf ("%s_badge-symbolic", session_name);
                     g_free (session_name);
                     if (gtk_icon_theme_has_icon (icon_theme, icon_name))
